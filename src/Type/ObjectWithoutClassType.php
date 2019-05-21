@@ -13,11 +13,16 @@ class ObjectWithoutClassType implements SubtractableType
 	/** @var \PHPStan\Type\Type|null */
 	private $subtractedType;
 
+	/** @var TrinaryLogic */
+	private $isDirect;
+
 	public function __construct(
-		?Type $subtractedType = null
+		?Type $subtractedType = null,
+		?TrinaryLogic $isDirect = null
 	)
 	{
 		$this->subtractedType = $subtractedType;
+		$this->isDirect = $isDirect ?? TrinaryLogic::createNo();
 	}
 
 	/**
@@ -138,13 +143,23 @@ class ObjectWithoutClassType implements SubtractableType
 		return $this->subtractedType;
 	}
 
+	public function isDirect(): TrinaryLogic
+	{
+		return $this->isDirect;
+	}
+
+	public function changeDirectness(TrinaryLogic $isDirect): Type
+	{
+		return new self($this->subtractedType, $isDirect);
+	}
+
 	/**
 	 * @param mixed[] $properties
 	 * @return Type
 	 */
 	public static function __set_state(array $properties): Type
 	{
-		return new self($properties['subtractedType'] ?? null);
+		return new self($properties['subtractedType'] ?? null, $properties['isDirect']);
 	}
 
 }

@@ -64,4 +64,24 @@ class Foo
 		return $array;
 	}
 
+	public function returnString(): string
+	{
+		$s = null;
+		if (rand(0, 1) === 0) {
+			$s = 'foo';
+		}
+
+		return $s;
+	}
+
+	public function returnString2(): string
+	{
+		$s = null;
+		if (rand(0, 1) === 0) {
+			$s = $this->returnString();
+		}
+
+		return $s;
+	}
+
 }

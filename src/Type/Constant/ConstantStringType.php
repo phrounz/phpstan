@@ -28,6 +28,7 @@ class ConstantStringType extends StringType implements ConstantScalarType
 
 	public function __construct(string $value)
 	{
+		parent::__construct(TrinaryLogic::createYes());
 		$this->value = $value;
 	}
 
@@ -210,6 +211,11 @@ class ConstantStringType extends StringType implements ConstantScalarType
 	public function append(self $otherString): self
 	{
 		return new self($this->getValue() . $otherString->getValue());
+	}
+
+	public function changeDirectness(TrinaryLogic $isDirect): Type
+	{
+		return $this;
 	}
 
 	/**

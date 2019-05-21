@@ -245,7 +245,7 @@ class TypeCombinator
 						if ($types[$j] instanceof SubtractableType) {
 							$subtractedType = $types[$j]->getSubtractedType();
 						}
-						$types[$i] = self::intersectWithSubtractedType($types[$i], $subtractedType);
+						$types[$i] = self::intersectWithSubtractedType($types[$i], $subtractedType)->changeDirectness($types[$i]->isDirect()->or($types[$j]->isDirect()));
 						array_splice($types, $j--, 1);
 						continue 1;
 					}
@@ -258,7 +258,7 @@ class TypeCombinator
 						if ($types[$i] instanceof SubtractableType) {
 							$subtractedType = $types[$i]->getSubtractedType();
 						}
-						$types[$j] = self::intersectWithSubtractedType($types[$j], $subtractedType);
+						$types[$j] = self::intersectWithSubtractedType($types[$j], $subtractedType)->changeDirectness($types[$j]->isDirect()->or($types[$i]->isDirect()));;
 						array_splice($types, $i--, 1);
 						continue 2;
 					}
@@ -268,6 +268,7 @@ class TypeCombinator
 					!$types[$j] instanceof ConstantArrayType
 					&& $types[$j]->isSuperTypeOf($types[$i])->yes()
 				) {
+					$types[$j] = $types[$j]->changeDirectness($types[$j]->isDirect()->or($types[$i]->isDirect()));
 					array_splice($types, $i--, 1);
 					continue 2;
 				}
@@ -276,6 +277,7 @@ class TypeCombinator
 					!$types[$i] instanceof ConstantArrayType
 					&& $types[$i]->isSuperTypeOf($types[$j])->yes()
 				) {
+					$types[$i] = $types[$i]->changeDirectness($types[$i]->isDirect()->or($types[$j]->isDirect()));
 					array_splice($types, $j--, 1);
 					continue 1;
 				}
@@ -524,6 +526,7 @@ class TypeCombinator
 						$isSuperTypeSubtractableA = $types[$j]->getTypeWithoutSubtractedType()->isSuperTypeOf($types[$i]);
 						if ($isSuperTypeSubtractableA->yes()) {
 							$types[$i] = self::unionWithSubtractedType($types[$i], $types[$j]->getSubtractedType());
+							// TODO
 							array_splice($types, $j--, 1);
 							continue 1;
 						}
@@ -533,6 +536,7 @@ class TypeCombinator
 						$isSuperTypeSubtractableB = $types[$i]->getTypeWithoutSubtractedType()->isSuperTypeOf($types[$j]);
 						if ($isSuperTypeSubtractableB->yes()) {
 							$types[$j] = self::unionWithSubtractedType($types[$j], $types[$i]->getSubtractedType());
+							// TODO
 							array_splice($types, $i--, 1);
 							continue 2;
 						}
@@ -543,6 +547,7 @@ class TypeCombinator
 					return new NeverType();
 
 				} elseif ($isSuperTypeA->yes()) {
+					// TODO
 					array_splice($types, $j--, 1);
 					continue;
 				}
@@ -553,6 +558,7 @@ class TypeCombinator
 				}
 
 				if ($isSuperTypeB->yes()) {
+					// TODO
 					array_splice($types, $i--, 1);
 					continue 2;
 				}

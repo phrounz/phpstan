@@ -21,6 +21,7 @@ class ConstantFloatType extends FloatType implements ConstantScalarType
 
 	public function __construct(float $value)
 	{
+		parent::__construct(TrinaryLogic::createYes());
 		$this->value = $value;
 	}
 
@@ -79,6 +80,11 @@ class ConstantFloatType extends FloatType implements ConstantScalarType
 	public function toInteger(): Type
 	{
 		return new ConstantIntegerType((int) $this->value);
+	}
+
+	public function changeDirectness(TrinaryLogic $isDirect): Type
+	{
+		return $this;
 	}
 
 	/**

@@ -353,6 +353,23 @@ class IntersectionType implements CompoundType, StaticResolvableType
 		return new self(UnionTypeHelper::changeBaseClass($className, $this->getTypes()));
 	}
 
+	public function isDirect(): TrinaryLogic
+	{
+		return $this->intersectResults(function (Type $type): TrinaryLogic {
+			return $type->isDirect();
+		});
+	}
+
+	public function changeDirectness(TrinaryLogic $isDirect): Type
+	{
+		$types = [];
+		foreach ($this->types as $type) {
+			$types[] = $type->changeDirectness($isDirect);
+		}
+
+		return new self($types);
+	}
+
 	/**
 	 * @param mixed[] $properties
 	 * @return Type

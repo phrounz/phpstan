@@ -2,6 +2,7 @@
 
 namespace PHPStan\Type\Constant;
 
+use PHPStan\TrinaryLogic;
 use PHPStan\Type\BooleanType;
 use PHPStan\Type\ConstantScalarType;
 use PHPStan\Type\Traits\ConstantScalarTypeTrait;
@@ -18,6 +19,7 @@ class ConstantBooleanType extends BooleanType implements ConstantScalarType
 
 	public function __construct(bool $value)
 	{
+		parent::__construct(TrinaryLogic::createYes());
 		$this->value = $value;
 	}
 
@@ -54,6 +56,11 @@ class ConstantBooleanType extends BooleanType implements ConstantScalarType
 	public function toFloat(): Type
 	{
 		return new ConstantFloatType((float) $this->value);
+	}
+
+	public function changeDirectness(TrinaryLogic $isDirect): Type
+	{
+		return $this;
 	}
 
 	/**

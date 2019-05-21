@@ -22,13 +22,18 @@ class IterableType implements StaticResolvableType, CompoundType
 	/** @var \PHPStan\Type\Type */
 	private $itemType;
 
+	/** @var TrinaryLogic */
+	private $isDirect;
+
 	public function __construct(
 		Type $keyType,
-		Type $itemType
+		Type $itemType,
+		?TrinaryLogic $isDirect = null
 	)
 	{
 		$this->keyType = $keyType;
 		$this->itemType = $itemType;
+		$this->isDirect = $isDirect ?? TrinaryLogic::createNo();
 	}
 
 	public function getItemType(): Type
@@ -185,13 +190,23 @@ class IterableType implements StaticResolvableType, CompoundType
 		return $this->getItemType();
 	}
 
+	public function isDirect(): TrinaryLogic
+	{
+		return $this->isDirect;
+	}
+
+	public function changeDirectness(TrinaryLogic $isDirect): Type
+	{
+		return new self($this->keyType, $this->itemType, $isDirect);
+	}
+
 	/**
 	 * @param mixed[] $properties
 	 * @return Type
 	 */
 	public static function __set_state(array $properties): Type
 	{
-		return new self($properties['keyType'], $properties['itemType']);
+		return new self($properties['keyType'], $properties['itemType'], $properties['isDirect']);
 	}
 
 }

@@ -5,6 +5,7 @@ namespace PHPStan\Reflection\Php;
 use PhpParser\Node\Expr;
 use PhpParser\Node\Expr\ConstFetch;
 use PHPStan\Reflection\PassedByReference;
+use PHPStan\TrinaryLogic;
 use PHPStan\Type\MixedType;
 use PHPStan\Type\Type;
 use PHPStan\Type\TypehintHelper;
@@ -77,7 +78,8 @@ class PhpParameterFromParserNodeReflection implements \PHPStan\Reflection\Parame
 					$phpDocType = \PHPStan\Type\TypeCombinator::addNull($phpDocType);
 				}
 			}
-			$this->type = TypehintHelper::decideType($this->realType, $phpDocType);
+
+			$this->type = TypehintHelper::decideType($this->realType, $phpDocType)->changeDirectness(TrinaryLogic::createYes());
 		}
 
 		return $this->type;

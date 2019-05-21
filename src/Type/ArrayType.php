@@ -24,13 +24,17 @@ class ArrayType implements StaticResolvableType
 	/** @var \PHPStan\Type\Type */
 	private $itemType;
 
-	public function __construct(Type $keyType, Type $itemType)
+	/** @var TrinaryLogic */
+	private $isDirect;
+
+	public function __construct(Type $keyType, Type $itemType, ?TrinaryLogic $isDirect = null)
 	{
 		if ($keyType->describe(VerbosityLevel::value()) === '(int|string)') {
 			$keyType = new MixedType();
 		}
 		$this->keyType = $keyType;
 		$this->itemType = $itemType;
+		$this->isDirect = $isDirect ?? TrinaryLogic::createNo();
 	}
 
 	public function getKeyType(): Type
@@ -288,6 +292,16 @@ class ArrayType implements StaticResolvableType
 		return new UnionType([new IntegerType(), new StringType()]);
 	}
 
+	public function isDirect(): TrinaryLogic
+	{
+		return $this->isDirect;
+	}
+
+	public function changeDirectness(TrinaryLogic $isDirect): Type
+	{
+		return new self($this->keyType, $this->itemType, $isDirect);
+	}
+
 	/**
 	 * @param mixed[] $properties
 	 * @return Type
@@ -296,7 +310,8 @@ class ArrayType implements StaticResolvableType
 	{
 		return new self(
 			$properties['keyType'],
-			$properties['itemType']
+			$properties['itemType'],
+			$properties['isDirect']
 		);
 	}
 

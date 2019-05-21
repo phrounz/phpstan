@@ -21,6 +21,14 @@ class BooleanType implements Type
 	use NonObjectTypeTrait;
 	use UndecidedBooleanTypeTrait;
 
+	/** @var TrinaryLogic */
+	private $isDirect;
+
+	public function __construct(?TrinaryLogic $isDirect = null)
+	{
+		$this->isDirect = $isDirect ?? TrinaryLogic::createNo();
+	}
+
 	public function describe(VerbosityLevel $level): string
 	{
 		return 'bool';
@@ -84,13 +92,23 @@ class BooleanType implements Type
 		return new ErrorType();
 	}
 
+	public function isDirect(): TrinaryLogic
+	{
+		return $this->isDirect;
+	}
+
+	public function changeDirectness(TrinaryLogic $isDirect): Type
+	{
+		return new self($isDirect);
+	}
+
 	/**
 	 * @param mixed[] $properties
 	 * @return Type
 	 */
 	public static function __set_state(array $properties): Type
 	{
-		return new static();
+		return new static($properties['isDirect']);
 	}
 
 }

@@ -20,10 +20,14 @@ class StaticType implements StaticResolvableType, TypeWithClassName
 	/** @var \PHPStan\Type\ObjectType */
 	private $staticObjectType;
 
-	public function __construct(string $baseClass)
+	/** @var TrinaryLogic */
+	private $isDirect;
+
+	public function __construct(string $baseClass, ?TrinaryLogic $isDirect = null)
 	{
 		$this->baseClass = $baseClass;
 		$this->staticObjectType = new ObjectType($baseClass);
+		$this->isDirect = $isDirect ?? TrinaryLogic::createNo();
 	}
 
 	public function getClassName(): string
@@ -231,13 +235,23 @@ class StaticType implements StaticResolvableType, TypeWithClassName
 		return $this->staticObjectType->toArray();
 	}
 
+	public function isDirect(): TrinaryLogic
+	{
+		return $this->isDirect;
+	}
+
+	public function changeDirectness(TrinaryLogic $isDirect): Type
+	{
+		return new self($this->baseClass, $isDirect);
+	}
+
 	/**
 	 * @param mixed[] $properties
 	 * @return Type
 	 */
 	public static function __set_state(array $properties): Type
 	{
-		return new static($properties['baseClass']);
+		return new static($properties['baseClass'], $properties['isDirect']);
 	}
 
 }

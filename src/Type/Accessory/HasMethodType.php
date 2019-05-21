@@ -102,6 +102,16 @@ class HasMethodType implements AccessoryType, CompoundType
 		];
 	}
 
+	public function isDirect(): TrinaryLogic
+	{
+		return TrinaryLogic::createYes();
+	}
+
+	public function changeDirectness(TrinaryLogic $isDirect): Type
+	{
+		return $this;
+	}
+
 	public static function __set_state(array $properties): Type
 	{
 		return new self($properties['methodName']);

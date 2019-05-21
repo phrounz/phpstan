@@ -2,6 +2,7 @@
 
 namespace PHPStan\Type\Constant;
 
+use PHPStan\TrinaryLogic;
 use PHPStan\Type\ConstantScalarType;
 use PHPStan\Type\IntegerType;
 use PHPStan\Type\Traits\ConstantScalarTypeTrait;
@@ -19,6 +20,7 @@ class ConstantIntegerType extends IntegerType implements ConstantScalarType
 
 	public function __construct(int $value)
 	{
+		parent::__construct(TrinaryLogic::createYes());
 		$this->value = $value;
 	}
 
@@ -47,6 +49,11 @@ class ConstantIntegerType extends IntegerType implements ConstantScalarType
 	public function toString(): Type
 	{
 		return new ConstantStringType((string) $this->value);
+	}
+
+	public function changeDirectness(TrinaryLogic $isDirect): Type
+	{
+		return $this;
 	}
 
 	/**

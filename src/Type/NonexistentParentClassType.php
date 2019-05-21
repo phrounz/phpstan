@@ -101,6 +101,16 @@ class NonexistentParentClassType implements Type
 		return new ErrorType();
 	}
 
+	public function isDirect(): TrinaryLogic
+	{
+		return TrinaryLogic::createNo();
+	}
+
+	public function changeDirectness(TrinaryLogic $isDirect): Type
+	{
+		return $this;
+	}
+
 	/**
 	 * @param mixed[] $properties
 	 * @return Type

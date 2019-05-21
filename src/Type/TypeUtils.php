@@ -231,4 +231,21 @@ class TypeUtils
 		return [];
 	}
 
+	public static function findNull(Type $type): ?NullType
+	{
+		if ($type instanceof NullType) {
+			return $type;
+		}
+
+		if ($type instanceof UnionType || $type instanceof IntersectionType) {
+			foreach ($type->getTypes() as $innerType) {
+				if ($innerType instanceof NullType) {
+					return $innerType;
+				}
+			}
+		}
+
+		return null;
+	}
+
 }

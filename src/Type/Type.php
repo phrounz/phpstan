@@ -80,6 +80,10 @@ interface Type
 
 	public function toArray(): Type;
 
+	public function isDirect(): TrinaryLogic;
+
+	public function changeDirectness(TrinaryLogic $isDirect): Type;
+
 	/**
 	 * @param mixed[] $properties
 	 * @return self

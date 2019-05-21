@@ -28,13 +28,18 @@ class ObjectType implements TypeWithClassName, SubtractableType
 	/** @var \PHPStan\Type\Type|null */
 	private $subtractedType;
 
+	/** @var TrinaryLogic */
+	private $isDirect;
+
 	public function __construct(
 		string $className,
-		?Type $subtractedType = null
+		?Type $subtractedType = null,
+		?TrinaryLogic $isDirect = null
 	)
 	{
 		$this->className = $className;
 		$this->subtractedType = $subtractedType;
+		$this->isDirect = $isDirect ?? TrinaryLogic::createNo();
 	}
 
 	public function getClassName(): string
@@ -662,6 +667,16 @@ class ObjectType implements TypeWithClassName, SubtractableType
 		return TrinaryLogic::createYes();
 	}
 
+	public function isDirect(): TrinaryLogic
+	{
+		return $this->isDirect;
+	}
+
+	public function changeDirectness(TrinaryLogic $isDirect): Type
+	{
+		return new self($this->className, $this->subtractedType, $isDirect);
+	}
+
 	/**
 	 * @param mixed[] $properties
 	 * @return Type
@@ -670,7 +685,8 @@ class ObjectType implements TypeWithClassName, SubtractableType
 	{
 		return new self(
 			$properties['className'],
-			$properties['subtractedType'] ?? null
+			$properties['subtractedType'] ?? null,
+			$properties['isDirect']
 		);
 	}
 

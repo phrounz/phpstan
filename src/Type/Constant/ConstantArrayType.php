@@ -46,7 +46,8 @@ class ConstantArrayType extends ArrayType implements ConstantType
 
 		parent::__construct(
 			count($keyTypes) > 0 ? TypeCombinator::union(...$keyTypes) : new NeverType(),
-			count($valueTypes) > 0 ? TypeCombinator::union(...$valueTypes) : new NeverType()
+			count($valueTypes) > 0 ? TypeCombinator::union(...$valueTypes) : new NeverType(),
+			TrinaryLogic::createYes()
 		);
 
 		$this->keyTypes = $keyTypes;
@@ -495,6 +496,11 @@ class ConstantArrayType extends ArrayType implements ConstantType
 				return $describeValue(false);
 			}
 		);
+	}
+
+	public function changeDirectness(TrinaryLogic $isDirect): Type
+	{
+		return $this;
 	}
 
 	/**

@@ -23,6 +23,8 @@ use PHPStan\Type\UnionType;
 class RuleLevelHelper
 {
 
+	public static $directTypesReportedOnLowerLevels = true; // TODO feature toggle
+
 	/** @var \PHPStan\Broker\Broker */
 	private $broker;
 
@@ -61,7 +63,14 @@ class RuleLevelHelper
 			&& !$acceptedType instanceof NullType
 			&& !$acceptedType instanceof BenevolentUnionType
 		) {
-			$acceptedType = TypeCombinator::removeNull($acceptedType);
+			if (self::$directTypesReportedOnLowerLevels) {
+				$nullType = TypeUtils::findNull($acceptedType);
+				if ($nullType !== null && !$nullType->isDirect()->yes()) {
+					$acceptedType = TypeCombinator::removeNull($acceptedType);
+				}
+			} else {
+				$acceptedType = TypeCombinator::removeNull($acceptedType);
+			}
 		}
 
 		$acceptedArrays = TypeUtils::getArrays($acceptedType);
@@ -128,7 +137,15 @@ class RuleLevelHelper
 
 		$accepts = $acceptingType->accepts($acceptedType, $strictTypes);
 
-		return $this->checkUnionTypes ? $accepts->yes() : !$accepts->no();
+		if ($this->checkUnionTypes) {
+			return $accepts->yes();
+		}
+
+		if (self::$directTypesReportedOnLowerLevels && $acceptedType->isDirect()->yes()) {
+			return $accepts->yes();
+		}
+
+		return !$accepts->no();
 	}
 
 	/**
@@ -150,7 +167,14 @@ class RuleLevelHelper
 		}
 		$type = $scope->getType($var);
 		if (!$this->checkNullables && !$type instanceof NullType) {
-			$type = \PHPStan\Type\TypeCombinator::removeNull($type);
+			if (self::$directTypesReportedOnLowerLevels) {
+				$nullType = TypeUtils::findNull($type);
+				if ($nullType !== null && !$nullType->isDirect()->yes()) {
+					$type = \PHPStan\Type\TypeCombinator::removeNull($type);
+				}
+			} else {
+				$type = \PHPStan\Type\TypeCombinator::removeNull($type);
+			}
 		}
 		if ($type instanceof MixedType || $type instanceof NeverType) {
 			return new FoundTypeResult(new ErrorType(), [], []);
@@ -181,7 +205,12 @@ class RuleLevelHelper
 				$newTypes = [];
 				foreach ($type->getTypes() as $innerType) {
 					if (!$unionTypeCriteriaCallback($innerType)) {
-						continue;
+						if (
+							!self::$directTypesReportedOnLowerLevels
+							|| !$innerType->isDirect()->yes()
+						) {
+							continue;
+						}
 					}
 
 					$newTypes[] = $innerType;

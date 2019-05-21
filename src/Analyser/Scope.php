@@ -1220,7 +1220,7 @@ class Scope implements ClassMemberAccessAnswerer
 			} elseif ($constName === 'false') {
 				return new \PHPStan\Type\Constant\ConstantBooleanType(false);
 			} elseif ($constName === 'null') {
-				return new NullType();
+				return new NullType(TrinaryLogic::createYes());
 			}
 
 			if ($this->broker->hasConstant($node->name, $this)) {
@@ -1250,7 +1250,7 @@ class Scope implements ClassMemberAccessAnswerer
 
 				$constantType = $this->getTypeFromValue(constant($resolvedConstantName));
 				if ($constantType instanceof ConstantType && in_array($resolvedConstantName, $this->dynamicConstantNames, true)) {
-					return $constantType->generalize();
+					return $constantType->generalize()->changeDirectness(TrinaryLogic::createYes());
 				}
 				return $constantType;
 			}
@@ -1417,16 +1417,16 @@ class Scope implements ClassMemberAccessAnswerer
 				}
 			}
 			if (count($resolvedTypes) > 0) {
-				return TypeCombinator::union(...$resolvedTypes);
+				return $this->postProcessReturnedType(TypeCombinator::union(...$resolvedTypes));
 			}
 
 			if ($methodCalledOnType->hasMethod($node->name->name)->yes()) {
 				$methodReflection = $methodCalledOnType->getMethod($node->name->name, $this);
-				return ParametersAcceptorSelector::selectFromArgs(
+				return $this->postProcessReturnedType(ParametersAcceptorSelector::selectFromArgs(
 					$this,
 					$node->args,
 					$methodReflection->getVariants()
-				)->getReturnType();
+				)->getReturnType());
 			}
 
 			return new ErrorType();
@@ -1495,16 +1495,16 @@ class Scope implements ClassMemberAccessAnswerer
 				}
 			}
 			if (count($resolvedTypes) > 0) {
-				return TypeCombinator::union(...$resolvedTypes);
+				return $this->postProcessReturnedType(TypeCombinator::union(...$resolvedTypes));
 			}
 
 			if ($calleeType->hasMethod($node->name->name)->yes()) {
 				$staticMethodReflection = $calleeType->getMethod($node->name->name, $this);
-				return ParametersAcceptorSelector::selectFromArgs(
+				return $this->postProcessReturnedType(ParametersAcceptorSelector::selectFromArgs(
 					$this,
 					$node->args,
 					$staticMethodReflection->getVariants()
-				)->getReturnType();
+				)->getReturnType());
 			}
 
 			return new ErrorType();
@@ -1529,14 +1529,14 @@ class Scope implements ClassMemberAccessAnswerer
 			}
 
 			if (count($types) > 0) {
-				return TypeCombinator::union(...$types);
+				return $this->postProcessReturnedType(TypeCombinator::union(...$types));
 			}
 
 			if (!$propertyFetchedOnType->hasProperty($node->name->name)->yes()) {
 				return new ErrorType();
 			}
 
-			return $propertyFetchedOnType->getProperty($node->name->name, $this)->getType();
+			return $this->postProcessReturnedType($propertyFetchedOnType->getProperty($node->name->name, $this)->getType());
 		}
 
 		if (
@@ -1566,14 +1566,14 @@ class Scope implements ClassMemberAccessAnswerer
 			}
 
 			if (count($types) > 0) {
-				return TypeCombinator::union(...$types);
+				return $this->postProcessReturnedType(TypeCombinator::union(...$types));
 			}
 
 			if (!$calleeType->hasProperty($node->name->name)->yes()) {
 				return new ErrorType();
 			}
 
-			return $calleeType->getProperty($node->name->name, $this)->getType();
+			return $this->postProcessReturnedType($calleeType->getProperty($node->name->name, $this)->getType());
 		}
 
 		if ($node instanceof FuncCall) {
@@ -1611,6 +1611,15 @@ class Scope implements ClassMemberAccessAnswerer
 		}
 
 		return new MixedType();
+	}
+
+	private function postProcessReturnedType(Type $type): Type
+	{
+		if ($type instanceof UnionType) {
+			return $type->changeDirectness(TrinaryLogic::createNo());
+		}
+
+		return $type->changeDirectness(TrinaryLogic::createYes());
 	}
 
 	protected function getTypeFromArrayDimFetch(
@@ -1761,7 +1770,7 @@ class Scope implements ClassMemberAccessAnswerer
 		} elseif (is_bool($value)) {
 			return new ConstantBooleanType($value);
 		} elseif ($value === null) {
-			return new NullType();
+			return NullType::createDirect();
 		} elseif (is_string($value)) {
 			return new ConstantStringType($value);
 		} elseif (is_array($value)) {
@@ -2160,7 +2169,7 @@ class Scope implements ClassMemberAccessAnswerer
 	public function enterCatch(array $classes, string $variableName): self
 	{
 		$type = TypeCombinator::union(...array_map(static function (string $class): ObjectType {
-			return new ObjectType($class);
+			return new ObjectType($class, null, TrinaryLogic::createYes());
 		}, $classes));
 
 		return $this->assignVariable(

@@ -264,6 +264,16 @@ class MixedType implements CompoundType, SubtractableType
 		return $this->subtractedType;
 	}
 
+	public function isDirect(): TrinaryLogic
+	{
+		return TrinaryLogic::createNo();
+	}
+
+	public function changeDirectness(TrinaryLogic $isDirect): Type
+	{
+		return $this;
+	}
+
 	/**
 	 * @param mixed[] $properties
 	 * @return Type

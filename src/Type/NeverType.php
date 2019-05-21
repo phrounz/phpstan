@@ -181,6 +181,16 @@ class NeverType implements CompoundType
 		return $this;
 	}
 
+	public function isDirect(): TrinaryLogic
+	{
+		return TrinaryLogic::createNo();
+	}
+
+	public function changeDirectness(TrinaryLogic $isDirect): Type
+	{
+		return $this;
+	}
+
 	/**
 	 * @param mixed[] $properties
 	 * @return Type

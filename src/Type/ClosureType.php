@@ -28,21 +28,27 @@ class ClosureType implements TypeWithClassName, ParametersAcceptor
 	/** @var bool */
 	private $variadic;
 
+	/** @var TrinaryLogic */
+	private $isDirect;
+
 	/**
 	 * @param array<int, \PHPStan\Reflection\Native\NativeParameterReflection> $parameters
 	 * @param Type $returnType
 	 * @param bool $variadic
+	 * @param TrinaryLogic $isDirect
 	 */
 	public function __construct(
 		array $parameters,
 		Type $returnType,
-		bool $variadic
+		bool $variadic,
+		?TrinaryLogic $isDirect = null
 	)
 	{
 		$this->objectType = new ObjectType(\Closure::class);
 		$this->parameters = $parameters;
 		$this->returnType = $returnType;
 		$this->variadic = $variadic;
+		$this->isDirect = $isDirect ?? TrinaryLogic::createNo();
 	}
 
 	public function getClassName(): string
@@ -271,6 +277,16 @@ class ClosureType implements TypeWithClassName, ParametersAcceptor
 		return $this->returnType;
 	}
 
+	public function isDirect(): TrinaryLogic
+	{
+		return $this->isDirect;
+	}
+
+	public function changeDirectness(TrinaryLogic $isDirect): Type
+	{
+		return new self($this->parameters, $this->returnType, $this->variadic, $isDirect);
+	}
+
 	/**
 	 * @param mixed[] $properties
 	 * @return Type
@@ -280,7 +296,8 @@ class ClosureType implements TypeWithClassName, ParametersAcceptor
 		return new self(
 			$properties['parameters'],
 			$properties['returnType'],
-			$properties['variadic']
+			$properties['variadic'],
+			$properties['isDirect']
 		);
 	}
 

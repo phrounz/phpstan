@@ -18,6 +18,14 @@ class VoidType implements Type
 	use NonOffsetAccessibleTypeTrait;
 	use FalseyBooleanTypeTrait;
 
+	/** @var TrinaryLogic */
+	private $isDirect;
+
+	public function __construct(?TrinaryLogic $isDirect = null)
+	{
+		$this->isDirect = $isDirect ?? TrinaryLogic::createNo();
+	}
+
 	/**
 	 * @return string[]
 	 */
@@ -79,13 +87,23 @@ class VoidType implements Type
 		return new ErrorType();
 	}
 
+	public function isDirect(): TrinaryLogic
+	{
+		return $this->isDirect;
+	}
+
+	public function changeDirectness(TrinaryLogic $isDirect): Type
+	{
+		return new self($isDirect);
+	}
+
 	/**
 	 * @param mixed[] $properties
 	 * @return Type
 	 */
 	public static function __set_state(array $properties): Type
 	{
-		return new self();
+		return new self($properties['isDirect']);
 	}
 
 }

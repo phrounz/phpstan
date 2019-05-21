@@ -29,6 +29,9 @@ class CallableType implements CompoundType, ParametersAcceptor
 	/** @var bool */
 	private $variadic;
 
+	/** @var TrinaryLogic */
+	private $isDirect;
+
 	/** @var bool */
 	private $isCommonCallable;
 
@@ -36,11 +39,13 @@ class CallableType implements CompoundType, ParametersAcceptor
 	 * @param array<int, \PHPStan\Reflection\Native\NativeParameterReflection> $parameters
 	 * @param Type $returnType
 	 * @param bool $variadic
+	 * @param TrinaryLogic $isDirect
 	 */
 	public function __construct(
 		?array $parameters = null,
 		?Type $returnType = null,
-		bool $variadic = true
+		bool $variadic = true,
+		?TrinaryLogic $isDirect = null
 	)
 	{
 		if ($returnType === null) {
@@ -51,6 +56,7 @@ class CallableType implements CompoundType, ParametersAcceptor
 		$this->returnType = $returnType;
 		$this->variadic = $variadic;
 		$this->isCommonCallable = $parameters === null;
+		$this->isDirect = $isDirect ?? TrinaryLogic::createNo();
 	}
 
 	/**
@@ -192,6 +198,16 @@ class CallableType implements CompoundType, ParametersAcceptor
 		return $this->returnType;
 	}
 
+	public function isDirect(): TrinaryLogic
+	{
+		return $this->isDirect;
+	}
+
+	public function changeDirectness(TrinaryLogic $isDirect): Type
+	{
+		return new self($this->parameters, $this->returnType, $this->variadic, $isDirect);
+	}
+
 	/**
 	 * @param mixed[] $properties
 	 * @return Type
@@ -201,7 +217,8 @@ class CallableType implements CompoundType, ParametersAcceptor
 		return new self(
 			(bool) $properties['isCommonCallable'] ? null : $properties['parameters'],
 			$properties['returnType'],
-			$properties['variadic']
+			$properties['variadic'],
+			$properties['isDirect']
 		);
 	}
 

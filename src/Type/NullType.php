@@ -19,6 +19,24 @@ class NullType implements ConstantScalarType
 	use NonObjectTypeTrait;
 	use FalseyBooleanTypeTrait;
 
+	/** @var TrinaryLogic */
+	private $isDirect;
+
+	public function __construct(?TrinaryLogic $isDirect = null)
+	{
+		$this->isDirect = $isDirect ?? TrinaryLogic::createNo();
+	}
+
+	public static function createDirect(): self
+	{
+		return new self(TrinaryLogic::createYes());
+	}
+
+	public static function createIndirect(): self
+	{
+		return new self(TrinaryLogic::createNo());
+	}
+
 	/**
 	 * @return string[]
 	 */
@@ -122,13 +140,23 @@ class NullType implements ConstantScalarType
 		return $array->setOffsetValueType($offsetType, $valueType);
 	}
 
+	public function isDirect(): TrinaryLogic
+	{
+		return $this->isDirect;
+	}
+
+	public function changeDirectness(TrinaryLogic $isDirect): Type
+	{
+		return new self($isDirect);
+	}
+
 	/**
 	 * @param mixed[] $properties
 	 * @return Type
 	 */
 	public static function __set_state(array $properties): Type
 	{
-		return new self();
+		return new self($properties['isDirect']);
 	}
 
 }
